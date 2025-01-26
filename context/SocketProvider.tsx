@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useEffect,
 } from "react";
 import { io } from "socket.io-client";
 import { Socket } from "socket.io-client/debug";
@@ -25,17 +26,52 @@ export const useSocket = () => {
 };
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const socket = useMemo(() => {
-    return io(String(process.env.NEXT_PUBLIC_SOCKET_SERVER_URL));
-  }, []);
   const [peerState, setpeerState] = useState<any>();
-  const [SocketId, setSocketId] = useState<any>(socket);
+  const [SocketId, setSocketId] = useState<any>();
+  const [socketInstance, setSocketInstance] = useState<any>(null);
+  
   const userId = useMemo(() => {
     return nanoid(10);
   }, []);
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_SOCKET_SERVER_URL) {
+      console.error('Socket server URL not configured');
+      return;
+    }
+
+    const socket = io(String(process.env.NEXT_PUBLIC_SOCKET_SERVER_URL));
+    
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
+      setSocketId(socket.id);
+      socket.emit("details", {
+        socketId: socket.id,
+        uniqueId: userId,
+      });
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    setSocketInstance(socket);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [userId]);
+
   return (
     <SocketContext.Provider
-      value={{ socket, userId, SocketId, setSocketId, peerState, setpeerState }}
+      value={{ 
+        socket: socketInstance, 
+        userId, 
+        SocketId, 
+        setSocketId, 
+        peerState, 
+        setpeerState 
+      }}
     >
       {children}
     </SocketContext.Provider>
