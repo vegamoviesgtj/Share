@@ -35,13 +35,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_SOCKET_SERVER_URL) {
-      console.error('Socket server URL not configured');
-      return;
-    }
+    // Initialize socket connection
+    const socket = io('', {
+      path: '/api/socket/io',
+      addTrailingSlash: false,
+    });
 
-    const socket = io(String(process.env.NEXT_PUBLIC_SOCKET_SERVER_URL));
-    
+    // Socket event listeners
     socket.on('connect', () => {
       console.log('Socket connected:', socket.id);
       setSocketId(socket.id);
@@ -55,8 +55,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Socket connection error:', error);
     });
 
+    socket.on('detailsReceived', (data) => {
+      console.log('Details received:', data);
+    });
+
     setSocketInstance(socket);
 
+    // Cleanup on unmount
     return () => {
       socket.disconnect();
     };
