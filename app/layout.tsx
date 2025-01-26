@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Navbar from "@/components/Navbar";
 import { keywordsForMetaData } from "@/utils/constants";
 import { Analytics } from "@vercel/analytics/react";
+import { SocketProvider } from "@/context/SocketProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,8 +39,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          {children}
+          <SocketProvider>
+            <Navbar />
+            {children}
+          </SocketProvider>
         </ThemeProvider>
         <Analytics />
       </body>
