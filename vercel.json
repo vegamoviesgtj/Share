@@ -1,4 +1,4 @@
 {
-  "root": "client",
+  "srcDirectory": "client",
   "framework": "nextjs"
 }
